@@ -1,0 +1,22 @@
+version: '0.1'
+
+templates:
+  - &hoge
+    cmds:
+      - echo foo
+    dir: /home/foo
+
+tasks:
+  build:
+    <<: *hoge
+    # commands:
+    #   - echo "{{ env.HOGE }}"
+    # directory: hoge
+    envs:
+      HOGE: foo
+
+  compile:
+    deps:
+      - build
+    cmds:
+      - echo hoge

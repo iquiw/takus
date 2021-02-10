@@ -1,0 +1,14 @@
+[package]
+name = "takus"
+version = "0.1.0"
+authors = ["Iku Iwasa <iku.iwasa@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "^1.0.38"
+serde = { version = "^1.0.123", features = ["derive"] }
+serde_yaml = "^0.8.15"
+yaml-merge-keys = { version = "^0.4.1", features = ["serde_yaml"] }
+# yaml-rust = "^0.4.5"
