@@ -13,6 +13,5 @@ fn main() -> anyhow::Result<()> {
     let yaml: Value = serde_yaml::from_str(&s)?;
     let merged = merge_keys_serde(yaml)?;
     let wf: Workflow = serde_yaml::from_value(merged)?;
-    println!("{:?}", wf);
-    Ok(())
+    wf.run()
 }

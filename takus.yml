@@ -3,7 +3,7 @@ version: '0.1'
 templates:
   - &hoge
     cmds:
-      - echo foo
+      - echo "foo $HOGE"
     dir: /home/foo
 
 tasks:
