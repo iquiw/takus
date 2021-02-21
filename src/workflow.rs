@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashSet};
+use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 use serde_yaml::Value;
@@ -12,32 +12,51 @@ pub struct Workflow {
     tasks: BTreeMap<String, Task>,
 }
 
-struct TaskDependant {
-    name: String,
-    dependants: Vec<String>,
-}
+// struct TaskDependant {
+//     name: String,
+//     dependants: Vec<String>,
+// }
 
 impl Workflow {
     pub fn run(&self) -> anyhow::Result<()> {
-        for (task_name, task) in self.tasks.iter() {
-            println!("Task {}", task_name);
-            task.execute()?;
+        let ordered = Workflow::order(&self.tasks);
+        for task_name in ordered {
+            if let Some(task) = self.tasks.get(&task_name) {
+                println!("Task {}", task_name);
+                task.execute()?;
+            }
         }
         Ok(())
     }
 
     fn order(map: &BTreeMap<String, Task>) -> Vec<String> {
+        let mut task_names: Vec<&String> = map.keys().collect();
         let mut dmap = BTreeMap::<String, u32>::new();
         let mut index = 0;
-        for (task_name, task) in map.iter() {
-            let dep_len = task.deps().iter().filter(|d| dmap.contains_key(*d)).count();
-            if dep_len == 0 {
-                dmap.insert(task_name.to_string(), index);
-                index += 1;
+        while task_names.len() > 0 {
+            let mut removed = vec![];
+            for i in 0..task_names.len() {
+                let task_name = task_names[i];
+                let task = map.get(task_name).unwrap();
+                let dep_len = task
+                    .deps()
+                    .iter()
+                    .filter(|d| !dmap.contains_key(*d))
+                    .count();
+                if dep_len == 0 {
+                    dmap.insert(task_name.to_string(), index);
+                    index += 1;
+                    removed.push(i);
+                }
+            }
+            removed.reverse();
+            for i in removed {
+                task_names.remove(i);
             }
         }
-        println!("{:?}", dmap);
-        vec![]
+        let mut dlist: Vec<(&String, &u32)> = dmap.iter().collect();
+        dlist.sort_by(|x, y| x.1.cmp(y.1));
+        dlist.iter().map(|x| x.0.to_string()).collect()
     }
 }
 
