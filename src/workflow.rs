@@ -1,8 +1,13 @@
 use std::collections::BTreeMap;
+use std::fs::File;
+use std::io::Read;
+use std::path::Path;
 
 use serde::{Deserialize, Serialize};
 use serde_yaml::Value;
+use yaml_merge_keys::merge_keys_serde;
 
+use super::state::GlobalState;
 use super::task::Task;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -18,12 +23,24 @@ pub struct Workflow {
 // }
 
 impl Workflow {
-    pub fn run(&self) -> anyhow::Result<()> {
+    pub fn load<P>(path: P) -> anyhow::Result<Self>
+    where
+        P: AsRef<Path>,
+    {
+        let mut f = File::open(path)?;
+        let mut s = String::new();
+        f.read_to_string(&mut s)?;
+        let yaml: Value = serde_yaml::from_str(&s)?;
+        let merged = merge_keys_serde(yaml)?;
+        Ok(serde_yaml::from_value(merged)?)
+    }
+
+    pub fn run(&self, gs: &GlobalState) -> anyhow::Result<()> {
         let ordered = Workflow::order(&self.tasks);
         for task_name in ordered {
             if let Some(task) = self.tasks.get(&task_name) {
                 println!("Task {}", task_name);
-                task.execute()?;
+                task.execute(gs)?;
             }
         }
         Ok(())

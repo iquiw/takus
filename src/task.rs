@@ -5,6 +5,8 @@ use std::process::Command;
 
 use serde::{Deserialize, Serialize};
 
+use super::state::GlobalState;
+
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Task {
     cmds: Vec<String>,
@@ -30,10 +32,10 @@ impl Task {
         }
     }
 
-    pub fn execute(&self) -> anyhow::Result<()> {
+    pub fn execute(&self, gs: &GlobalState) -> anyhow::Result<()> {
         for cmd in &self.cmds {
             let output = Command::new("sh")
-                .current_dir(self.dir.as_ref().unwrap_or(&PathBuf::from(".")))
+                .current_dir(self.dir.as_ref().unwrap_or(gs.working_dir()))
                 .envs(&self.envs)
                 .arg("-c")
                 .arg(cmd)
