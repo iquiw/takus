@@ -33,6 +33,7 @@ impl Task {
     pub fn execute(&self) -> anyhow::Result<()> {
         for cmd in &self.cmds {
             let output = Command::new("sh")
+                .current_dir(self.dir.as_ref().unwrap_or(&PathBuf::from(".")))
                 .envs(&self.envs)
                 .arg("-c")
                 .arg(cmd)

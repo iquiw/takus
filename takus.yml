@@ -4,7 +4,7 @@ templates:
   - &hoge
     cmds:
       - echo "foo $HOGE"
-    dir: /home/foo
+    dir: /tmp/hoge
 
 tasks:
   build:
@@ -20,3 +20,10 @@ tasks:
       - build
     cmds:
       - echo hoge
+
+  install:
+    cmds:
+      - echo "$PWD"
+    dir: /tmp/hoge
+    envs:
+      HOGE: moge
