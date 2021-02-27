@@ -46,6 +46,17 @@ impl Workflow {
         Ok(())
     }
 
+    fn select(map: &mut BTreeMap<String, Task>, task_name: &str) -> BTreeMap<String, Task> {
+        let mut selected = BTreeMap::<String, Task>::new();
+        let mut task_names = vec![];
+        // for task_name in task_names {
+            let task = map.remove(task_name).unwrap();
+            selected.insert(task_name.to_string(), map.remove(task_name).unwrap());
+            task.deps();
+        // }
+        selected
+    }
+
     fn order(map: &BTreeMap<String, Task>) -> Vec<String> {
         let mut task_names: Vec<&String> = map.keys().collect();
         let mut dmap = BTreeMap::<String, u32>::new();
@@ -85,6 +96,24 @@ mod test {
 
     fn new_task(deps: Vec<String>) -> Task {
         Task::new(vec![], deps, None, BTreeMap::new())
+    }
+
+    #[test]
+    fn test_select() {
+        let t_e = new_task(vec![]);
+        let t_d = new_task(vec!["E".to_string()]);
+        let t_c = new_task(vec!["D".to_string()]);
+        let t_b = new_task(vec!["E".to_string(), "C".to_string()]);
+        let t_a = new_task(vec!["B".to_string()]);
+
+        let mut m = BTreeMap::<String, Task>::new();
+        m.insert("A".to_string(), t_a);
+        m.insert("B".to_string(), t_b);
+        m.insert("C".to_string(), t_c);
+        m.insert("D".to_string(), t_d);
+        m.insert("E".to_string(), t_e);
+        let map = Workflow::select(&mut m, &["C".to_string()]);
+        assert_eq!(map.len(), 3);
     }
 
     #[test]
