@@ -3,7 +3,7 @@ version: '0.1'
 templates:
   - &hoge
     cmds:
-      - echo "foo $HOGE"
+      - echo "foo $HOGE $PWD"
     dir: /tmp/hoge
 
 tasks:

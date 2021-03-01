@@ -115,8 +115,7 @@ mod test {
         Task::new(vec![], deps, None, BTreeMap::new())
     }
 
-    #[test]
-    fn test_select() {
+    fn select_input() -> BTreeMap<String, Task> {
         let t_e = new_task(vec![]);
         let t_d = new_task(vec!["E".to_string()]);
         let t_c = new_task(vec!["D".to_string()]);
@@ -129,13 +128,33 @@ mod test {
         m.insert("C".to_string(), t_c);
         m.insert("D".to_string(), t_d);
         m.insert("E".to_string(), t_e);
-        let result = Workflow::select(&mut m, "C");
+        m
+    }
+
+    #[test]
+    fn test_select_ok() {
+        let m = select_input();
+        let result = Workflow::select(&m, "C");
         assert!(result.is_ok());
         let map = result.unwrap();
         assert_eq!(map.len(), 3);
         assert!(map.contains_key("C"));
         assert!(map.contains_key("D"));
         assert!(map.contains_key("E"));
+
+        let result = Workflow::select(&m, "E");
+        assert!(result.is_ok());
+        let map = result.unwrap();
+        assert_eq!(map.len(), 1);
+        assert!(map.contains_key("E"));
+    }
+
+    #[test]
+    fn test_select_notfound() {
+        let m = select_input();
+        let result = Workflow::select(&m, "F");
+        assert!(result.is_err());
+        assert_eq!(format!("{}", result.unwrap_err()), "Task not found: F");
     }
 
     #[test]
