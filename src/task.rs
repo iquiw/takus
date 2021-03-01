@@ -9,6 +9,7 @@ use super::state::GlobalState;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Task {
+    #[serde(default)]
     cmds: Vec<String>,
     #[serde(default)]
     deps: Vec<String>,

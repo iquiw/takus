@@ -31,31 +31,34 @@ impl Workflow {
         Ok(serde_yaml::from_value(merged)?)
     }
 
-    pub fn run(&self, gs: &GlobalState) -> anyhow::Result<()> {
-        let ordered = Workflow::order(&self.tasks);
-        for task_name in ordered {
-            if let Some(task) = self.tasks.get(&task_name) {
-                println!("Task {}", task_name);
-                task.execute(gs)?;
+    pub fn run(&mut self, gs: &GlobalState, selected_names: &Vec<String>) -> anyhow::Result<()> {
+        for selected_name in selected_names {
+            let selected = Workflow::select(&self.tasks, selected_name)?;
+            let ordered = Workflow::order(&selected);
+            for task_name in ordered {
+                if let Some(task) = self.tasks.get(&task_name) {
+                    println!("Task {}", task_name);
+                    task.execute(gs)?;
+                }
             }
         }
         Ok(())
     }
 
-    fn select(
-        map: &mut BTreeMap<String, Task>,
+    fn select<'a>(
+        map: &'a BTreeMap<String, Task>,
         task_name: &str,
-    ) -> anyhow::Result<BTreeMap<String, Task>> {
-        let mut selected = BTreeMap::<String, Task>::new();
-        if let Some(task) = map.remove(task_name) {
+    ) -> anyhow::Result<BTreeMap<String, &'a Task>> {
+        let mut selected = BTreeMap::<String, &Task>::new();
+        if let Some(task) = map.get(task_name) {
             let mut names: Vec<String> = task.deps().clone();
-            selected.insert(task_name.to_string(), task);
+            selected.insert(task_name.to_string(), &task);
             loop {
                 let mut nexts = vec![];
                 for name in names {
-                    if let Some(task) = map.remove(&name) {
+                    if let Some(task) = map.get(&name) {
                         nexts.append(&mut task.deps().clone());
-                        selected.insert(name.to_string(), task);
+                        selected.insert(name.to_string(), &task);
                     }
                 }
                 if nexts.is_empty() {
@@ -71,7 +74,7 @@ impl Workflow {
         }
     }
 
-    fn order(map: &BTreeMap<String, Task>) -> Vec<String> {
+    fn order(map: &BTreeMap<String, &Task>) -> Vec<String> {
         let mut task_names: Vec<&String> = map.keys().collect();
         let mut dmap = BTreeMap::<String, u32>::new();
         let mut index = 0;
@@ -143,12 +146,12 @@ mod test {
         let t_b = new_task(vec!["E".to_string(), "C".to_string()]);
         let t_a = new_task(vec!["B".to_string()]);
 
-        let mut m = BTreeMap::<String, Task>::new();
-        m.insert("A".to_string(), t_a);
-        m.insert("B".to_string(), t_b);
-        m.insert("C".to_string(), t_c);
-        m.insert("D".to_string(), t_d);
-        m.insert("E".to_string(), t_e);
+        let mut m = BTreeMap::<String, &Task>::new();
+        m.insert("A".to_string(), &t_a);
+        m.insert("B".to_string(), &t_b);
+        m.insert("C".to_string(), &t_c);
+        m.insert("D".to_string(), &t_d);
+        m.insert("E".to_string(), &t_e);
         let ord = Workflow::order(&m);
         assert_eq!(
             ord,
