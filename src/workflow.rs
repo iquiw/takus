@@ -18,11 +18,6 @@ pub struct Workflow {
     tasks: BTreeMap<String, Task>,
 }
 
-// struct TaskDependant {
-//     name: String,
-//     dependants: Vec<String>,
-// }
-
 impl Workflow {
     pub fn load<P>(path: P) -> anyhow::Result<Self>
     where

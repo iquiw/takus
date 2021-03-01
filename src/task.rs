@@ -18,7 +18,8 @@ pub struct Task {
 }
 
 impl Task {
-    pub(super) fn new(
+    #[cfg(test)]
+    pub fn new(
         cmds: Vec<String>,
         deps: Vec<String>,
         dir: Option<PathBuf>,
